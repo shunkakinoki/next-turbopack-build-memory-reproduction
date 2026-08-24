@@ -14,7 +14,7 @@ const readPositiveInteger = (name, fallback) => {
 };
 
 const routeCount = readPositiveInteger("REPRO_ROUTES", 100);
-const componentsPerRoute = readPositiveInteger("REPRO_COMPONENTS_PER_ROUTE", 64);
+const componentsPerRoute = readPositiveInteger("REPRO_COMPONENTS_PER_ROUTE", 120);
 const rowsPerComponent = readPositiveInteger("REPRO_ROWS_PER_COMPONENT", 96);
 
 const existingAppEntries = await readdir(appDirectory, { withFileTypes: true });

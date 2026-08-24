@@ -5,7 +5,7 @@ inside a Linux container with a hard memory limit. It contains no application
 code or configuration from the project where the failure was first observed.
 
 The default fixture approximates the observed project shape: 100 routes and
-6,400 client modules compiled by Turbopack with the native React compiler. Each
+12,000 client modules compiled by Turbopack with the native React compiler. Each
 module contains deterministic synthetic data so the fixture is generated from
 a small, reviewable source file.
 
@@ -20,9 +20,9 @@ bun run reproduce -- 16.3.2
 
 The script constrains the container to 2 CPUs and 4 GB of memory, samples
 cgroup memory once per second, and writes the build log, memory samples, and
-cgroup OOM counts to `results/<version>/`. A cgroup OOM exits with status 137.
-Builds are bounded to 180 seconds so a memory-thrashing process cannot run
-indefinitely.
+cgroup counters to `results/<version>/`. A cgroup OOM exits with status 137.
+Builds are bounded to 180 seconds and exit with status 124 so a process pinned
+at the memory ceiling cannot thrash indefinitely.
 
 Verify the current canary with:
 
@@ -30,20 +30,20 @@ Verify the current canary with:
 bun run reproduce -- canary
 ```
 
-## Observed results
+## Observed native Linux x64 results
 
-On Docker Desktop 29.7.2 with the default 2 CPU / 4 GB cgroup:
+On the included GitHub Actions workflow with the default 2 CPU / 4 GB cgroup:
 
-| Next.js | Modules | Result | Build stage |
+| Next.js | Modules | Result | Cgroup evidence |
 | --- | ---: | --- | --- |
-| 16.3.2 | 6,300 | Exit 0 | Completed |
-| 16.3.2 | 6,400 | Exit 137, `oom_kill=1` (twice) | Collecting page data using 15 workers |
-| 16.4.0-canary.4 | 6,400 | Exit 137, `oom_kill=1` | Collecting page data using 15 workers |
+| 16.3.2 | 8,000 | Exit 0 in 65 seconds | 4,095 MiB peak; 5,331 at-limit events |
+| 16.3.2 | 12,000 | Exit 124 during compilation | 4,096 MiB peak; 218,142 at-limit events |
+| 16.4.0-canary.4 | 12,000 | Exit 124 during compilation | 4,096 MiB peak; 135,930 at-limit events |
 
 Run the green control with:
 
 ```bash
-REPRO_COMPONENTS_PER_ROUTE=63 bun run reproduce -- 16.3.2
+REPRO_COMPONENTS_PER_ROUTE=80 bun run reproduce -- 16.3.2
 ```
 
 The included GitHub Actions workflow runs the same reproduction on native
@@ -62,4 +62,8 @@ page-data worker fan-out.
 ## Expected behavior
 
 `next build` should complete within the configured memory limit, or report an
-actionable framework error before the Linux cgroup kills a build process.
+actionable framework error instead of remaining in compilation while pinned at
+the cgroup memory ceiling.
+
+The measurements establish build-memory exhaustion and lack of forward
+progress. They do not by themselves establish a time-based memory leak.

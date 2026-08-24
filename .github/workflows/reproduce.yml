@@ -13,7 +13,7 @@ on:
       components-per-route:
         description: Synthetic client modules generated for each route
         required: true
-        default: "65"
+        default: "120"
         type: string
 
 permissions:
@@ -29,17 +29,17 @@ jobs:
         with:
           bun-version: 1.4.0
       - run: bun install --frozen-lockfile --minimum-release-age=0
-      - name: Assert the cgroup OOM reproduces
+      - name: Assert cgroup memory exhaustion reproduces
         env:
           NEXT_VERSION: ${{ inputs.next-version || '16.3.2' }}
-          REPRO_COMPONENTS_PER_ROUTE: ${{ inputs.components-per-route || '65' }}
+          REPRO_COMPONENTS_PER_ROUTE: ${{ inputs.components-per-route || '120' }}
         run: |
           set +e
           bun run reproduce -- "$NEXT_VERSION"
           status=$?
           set -e
-          test "$status" -eq 137
-          awk '$1 == "oom_kill" && $2 > 0 { found = 1 } END { exit !found }' \
+          test "$status" -eq 124 -o "$status" -eq 137
+          awk '$1 == "max" && $2 > 0 { found = 1 } END { exit !found }' \
             "results/$NEXT_VERSION/memory.events"
       - name: Upload memory evidence
         if: always()
