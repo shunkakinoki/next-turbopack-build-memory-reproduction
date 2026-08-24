@@ -3,12 +3,13 @@ import type { NextConfig } from "next";
 const experimentalCpus = process.env.NEXT_EXPERIMENTAL_CPUS
   ? Number.parseInt(process.env.NEXT_EXPERIMENTAL_CPUS, 10)
   : undefined;
+const reactCompilerEnabled = process.env.REPRO_REACT_COMPILER !== "false";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  reactCompiler: reactCompilerEnabled,
   experimental: {
     ...(experimentalCpus ? { cpus: experimentalCpus } : {}),
-    turbopackRustReactCompiler: true,
+    turbopackRustReactCompiler: reactCompilerEnabled,
   },
   typescript: {
     ignoreBuildErrors: true,

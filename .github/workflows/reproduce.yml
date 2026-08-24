@@ -15,6 +15,14 @@ on:
         required: true
         default: "120"
         type: string
+      react-compiler:
+        description: Enable the native Turbopack React Compiler
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 permissions:
   contents: read
@@ -33,6 +41,7 @@ jobs:
         env:
           NEXT_VERSION: ${{ inputs.next-version || '16.3.2' }}
           REPRO_COMPONENTS_PER_ROUTE: ${{ inputs.components-per-route || '120' }}
+          REPRO_REACT_COMPILER: ${{ inputs.react-compiler || 'true' }}
         run: |
           set +e
           bun run reproduce -- "$NEXT_VERSION"
