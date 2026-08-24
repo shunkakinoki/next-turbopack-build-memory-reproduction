@@ -60,6 +60,10 @@ CPU_LIMIT=4 MEMORY_LIMIT=6g REPRO_ROUTES=80 REPRO_COMPONENTS_PER_ROUTE=48 \
 Set `NEXT_EXPERIMENTAL_CPUS=1` to isolate compilation from the default
 page-data worker fan-out.
 
+Set `REPRO_PLUGIN_RUNTIME_STRATEGY=workerThreads` to test Next.js's lower-memory
+Turbopack backend for Node evaluation, or `RAYON_NUM_THREADS=1` to test whether
+limiting Rayon changes the native compiler's memory profile.
+
 Set `REPRO_REACT_COMPILER=false` to run the same graph without the React
 Compiler transform.
 

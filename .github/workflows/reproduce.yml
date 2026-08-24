@@ -31,6 +31,24 @@ on:
         options:
           - turbopack
           - webpack
+      experimental-cpus:
+        description: Value for experimental.cpus (blank uses Next.js default)
+        required: false
+        default: ""
+        type: string
+      plugin-runtime-strategy:
+        description: Turbopack Node evaluation backend
+        required: true
+        default: childProcesses
+        type: choice
+        options:
+          - childProcesses
+          - workerThreads
+      rayon-threads:
+        description: RAYON_NUM_THREADS value (blank uses library default)
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -51,6 +69,9 @@ jobs:
           REPRO_COMPONENTS_PER_ROUTE: ${{ inputs.components-per-route || '120' }}
           REPRO_REACT_COMPILER: ${{ inputs.react-compiler || 'true' }}
           REPRO_BUNDLER: ${{ inputs.bundler || 'turbopack' }}
+          NEXT_EXPERIMENTAL_CPUS: ${{ inputs.experimental-cpus || '' }}
+          REPRO_PLUGIN_RUNTIME_STRATEGY: ${{ inputs.plugin-runtime-strategy || 'childProcesses' }}
+          RAYON_NUM_THREADS: ${{ inputs.rayon-threads || '' }}
         run: |
           set +e
           bun run reproduce -- "$NEXT_VERSION"

@@ -5,13 +5,19 @@ const experimentalCpus = process.env.NEXT_EXPERIMENTAL_CPUS
   : undefined;
 const reactCompilerEnabled = process.env.REPRO_REACT_COMPILER !== "false";
 const webpackEnabled = process.env.REPRO_BUNDLER === "webpack";
+const pluginRuntimeStrategy = process.env.REPRO_PLUGIN_RUNTIME_STRATEGY;
 
 const nextConfig: NextConfig = {
   reactCompiler: reactCompilerEnabled && !webpackEnabled,
   experimental: {
     ...(experimentalCpus ? { cpus: experimentalCpus } : {}),
     ...(!webpackEnabled
-      ? { turbopackRustReactCompiler: reactCompilerEnabled }
+      ? {
+          turbopackRustReactCompiler: reactCompilerEnabled,
+          ...(pluginRuntimeStrategy === "workerThreads"
+            ? { turbopackPluginRuntimeStrategy: "workerThreads" as const }
+            : {}),
+        }
       : { webpackMemoryOptimizations: true }),
   },
   typescript: {

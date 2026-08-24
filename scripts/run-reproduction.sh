@@ -35,6 +35,8 @@ docker run --rm \
   --env "REPRO_BUNDLER=${bundler}" \
   --env "NEXT_RUNTIME=${next_runtime}" \
   --env "NEXT_EXPERIMENTAL_CPUS=${NEXT_EXPERIMENTAL_CPUS:-}" \
+  --env "REPRO_PLUGIN_RUNTIME_STRATEGY=${REPRO_PLUGIN_RUNTIME_STRATEGY:-childProcesses}" \
+  --env "RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-}" \
   --env "BUILD_TIMEOUT_SECONDS=${build_timeout_seconds}" \
   --env NEXT_TELEMETRY_DISABLED=1 \
   "${runtime_image}" \
