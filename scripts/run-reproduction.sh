@@ -9,6 +9,12 @@ cpu_limit="${CPU_LIMIT:-2}"
 build_timeout_seconds="${BUILD_TIMEOUT_SECONDS:-180}"
 result_name="${next_version//[^a-zA-Z0-9._-]/-}-${bundler}"
 result_directory="${repository_root}/results/${result_name}"
+runtime_image="oven/bun:1.4.0"
+next_runtime="bun"
+if [[ "${bundler}" == "webpack" ]]; then
+  runtime_image="node:24-bookworm-slim"
+  next_runtime="node"
+fi
 
 mkdir -p "${result_directory}"
 rm -f "${result_directory}/build.log" "${result_directory}/memory.csv" "${result_directory}/memory.events"
@@ -27,17 +33,26 @@ docker run --rm \
   --env "REPRO_ROWS_PER_COMPONENT=${REPRO_ROWS_PER_COMPONENT:-96}" \
   --env "REPRO_REACT_COMPILER=${REPRO_REACT_COMPILER:-true}" \
   --env "REPRO_BUNDLER=${bundler}" \
+  --env "NEXT_RUNTIME=${next_runtime}" \
   --env "NEXT_EXPERIMENTAL_CPUS=${NEXT_EXPERIMENTAL_CPUS:-}" \
   --env "BUILD_TIMEOUT_SECONDS=${build_timeout_seconds}" \
   --env NEXT_TELEMETRY_DISABLED=1 \
-  oven/bun:1.4.0 \
+  "${runtime_image}" \
   bash -lc '
     set -euo pipefail
     cp -R /source/. /work
     cd /work
-    bun install --frozen-lockfile --minimum-release-age=0
-    if [[ "$NEXT_VERSION" != "16.3.2" ]]; then
-      bun add --exact --no-save --minimum-release-age=0 "next@${NEXT_VERSION}"
+    if [[ "$REPRO_BUNDLER" == "webpack" ]]; then
+      if [[ "$NEXT_VERSION" != "16.3.2" ]]; then
+        echo "Webpack comparisons currently require the lockfile version (16.3.2)." >&2
+        exit 2
+      fi
+      test -d node_modules
+    else
+      bun install --frozen-lockfile --minimum-release-age=0
+      if [[ "$NEXT_VERSION" != "16.3.2" ]]; then
+        bun add --exact --no-save --minimum-release-age=0 "next@${NEXT_VERSION}"
+      fi
     fi
     (
       while true; do
@@ -55,14 +70,14 @@ docker run --rm \
     trap cleanup EXIT
     {
       uname -a
-      bun ./node_modules/next/dist/bin/next info
-      bun run generate
+      "$NEXT_RUNTIME" ./node_modules/next/dist/bin/next info
+      "$NEXT_RUNTIME" scripts/generate.mjs
       build_args=()
       if [[ "$REPRO_BUNDLER" == "webpack" ]]; then
         build_args+=(--webpack)
       fi
       timeout --signal=TERM --kill-after=10s "${BUILD_TIMEOUT_SECONDS}s" \
-        bun ./node_modules/next/dist/bin/next build "${build_args[@]}"
+        "$NEXT_RUNTIME" ./node_modules/next/dist/bin/next build "${build_args[@]}"
     } 2>&1 | tee /results/build.log
   '
 status=$?
