@@ -64,7 +64,7 @@ Set `REPRO_REACT_COMPILER=false` to run the same graph without the React
 Compiler transform.
 
 To test Next.js's documented production-bundler fallback with its low-memory
-Webpack mode enabled:
+Webpack mode enabled and the Turbopack-native React Compiler disabled:
 
 ```bash
 REPRO_BUNDLER=webpack REPRO_COMPONENTS_PER_ROUTE=120 \

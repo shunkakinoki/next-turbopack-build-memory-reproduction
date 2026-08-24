@@ -7,7 +7,7 @@ const reactCompilerEnabled = process.env.REPRO_REACT_COMPILER !== "false";
 const webpackEnabled = process.env.REPRO_BUNDLER === "webpack";
 
 const nextConfig: NextConfig = {
-  reactCompiler: reactCompilerEnabled,
+  reactCompiler: reactCompilerEnabled && !webpackEnabled,
   experimental: {
     ...(experimentalCpus ? { cpus: experimentalCpus } : {}),
     ...(!webpackEnabled
