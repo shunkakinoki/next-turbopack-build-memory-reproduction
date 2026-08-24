@@ -10,6 +10,11 @@ on:
         required: true
         default: canary
         type: string
+      components-per-route:
+        description: Synthetic client modules generated for each route
+        required: true
+        default: "65"
+        type: string
 
 permissions:
   contents: read
@@ -19,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
@@ -27,6 +32,7 @@ jobs:
       - name: Assert the cgroup OOM reproduces
         env:
           NEXT_VERSION: ${{ inputs.next-version || '16.3.2' }}
+          REPRO_COMPONENTS_PER_ROUTE: ${{ inputs.components-per-route || '65' }}
         run: |
           set +e
           bun run reproduce -- "$NEXT_VERSION"
@@ -37,7 +43,7 @@ jobs:
             "results/$NEXT_VERSION/memory.events"
       - name: Upload memory evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: next-build-memory-${{ inputs.next-version || '16.3.2' }}
           path: results/
