@@ -37,8 +37,9 @@ On the included GitHub Actions workflow with the default 2 CPU / 4 GB cgroup:
 | Next.js | Modules | Result | Cgroup evidence |
 | --- | ---: | --- | --- |
 | 16.3.2 | 8,000 | Exit 0 in 65 seconds | 4,095 MiB peak; 5,331 at-limit events |
-| 16.3.2 | 12,000 | Exit 124 during compilation | 4,096 MiB peak; 218,142 at-limit events |
-| 16.4.0-canary.4 | 12,000 | Exit 124 during compilation | 4,096 MiB peak; 135,930 at-limit events |
+| 16.3.2 | 12,000 | Exit 137 during compilation | 4,096 MiB peak; 206,580 at-limit events; one OOM kill |
+| 16.4.0-canary.4 | 12,000 | Exit 124 during compilation | 4,096 MiB peak; 260,056 at-limit events |
+| 16.3.2, React Compiler disabled | 12,000 | Exit 124 during compilation | 4,096 MiB peak; 128,933 at-limit events |
 
 Run the green control with:
 
