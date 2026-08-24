@@ -23,6 +23,14 @@ on:
         options:
           - "true"
           - "false"
+      bundler:
+        description: Production bundler
+        required: true
+        default: turbopack
+        type: choice
+        options:
+          - turbopack
+          - webpack
 
 permissions:
   contents: read
@@ -42,17 +50,22 @@ jobs:
           NEXT_VERSION: ${{ inputs.next-version || '16.3.2' }}
           REPRO_COMPONENTS_PER_ROUTE: ${{ inputs.components-per-route || '120' }}
           REPRO_REACT_COMPILER: ${{ inputs.react-compiler || 'true' }}
+          REPRO_BUNDLER: ${{ inputs.bundler || 'turbopack' }}
         run: |
           set +e
           bun run reproduce -- "$NEXT_VERSION"
           status=$?
           set -e
-          test "$status" -eq 124 -o "$status" -eq 137
-          awk '$1 == "max" && $2 > 0 { found = 1 } END { exit !found }' \
-            "results/$NEXT_VERSION/memory.events"
+          if [[ "$REPRO_BUNDLER" == "turbopack" ]]; then
+            test "$status" -eq 124 -o "$status" -eq 137
+            awk '$1 == "max" && $2 > 0 { found = 1 } END { exit !found }' \
+              "results/$NEXT_VERSION-$REPRO_BUNDLER/memory.events"
+          else
+            exit "$status"
+          fi
       - name: Upload memory evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: next-build-memory-${{ inputs.next-version || '16.3.2' }}
+          name: next-build-memory-${{ inputs.next-version || '16.3.2' }}-${{ inputs.bundler || 'turbopack' }}
           path: results/

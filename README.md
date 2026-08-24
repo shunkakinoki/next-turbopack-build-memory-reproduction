@@ -63,6 +63,14 @@ page-data worker fan-out.
 Set `REPRO_REACT_COMPILER=false` to run the same graph without the React
 Compiler transform.
 
+To test Next.js's documented production-bundler fallback with its low-memory
+Webpack mode enabled:
+
+```bash
+REPRO_BUNDLER=webpack REPRO_COMPONENTS_PER_ROUTE=120 \
+  bun run reproduce -- 16.3.2
+```
+
 ## Expected behavior
 
 `next build` should complete within the configured memory limit, or report an
